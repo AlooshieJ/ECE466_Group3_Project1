@@ -122,8 +122,7 @@ class CircuitSimulator(object):
         self.args = args
         self.parser = self.LineParser(args.bench)
         self.compile(self.parser.parse_file())
-        self.run_fault = False  # if should output fault detection
-        self.fault = None
+        self.faulty_node = None
 
     def __next__(self):
         if self.iteration == 0:
@@ -198,20 +197,21 @@ class CircuitSimulator(object):
         for iteration in self:
             iteration_printer(self.nodes)
         print(iteration_printer)
+        self.detect_faults()
 
     def create_fault(self):
         while True:
             node_name = input("Which node do you want to be faulty? (return to skip) ")
             if node_name:
                 try:
-                    faulty_node = self.nodes[node_name]
+                    self.faulty_node = self.nodes[node_name]
                     while True:
-                        fault_value = input(f"Which value do you want node {faulty_node.name} to be stuck at? (1/0) ")
+                        fault_value = input(f"Which value do you want node {self.faulty_node.name} to be stuck at? (1/0) ")
                         if fault_value == '0':  # f Node -sA0 mean D
-                            faulty_node.set(nodes.Value("D"))
+                            self.faulty_node.set(nodes.Value("D"))
                             break
                         elif fault_value == '1':  # Fault means Node = D'
-                            faulty_node.set(nodes.Value("D'"))
+                            self.faulty_node.set(nodes.Value("D'"))
                             break
                         else:
                             print("Invalid value: try again")
@@ -221,25 +221,16 @@ class CircuitSimulator(object):
             else:
                 break
 
-    def detect_fault(self):
-        #     TODO: Detect any faults that have propagated to the outputs
-        print("Fault detected by propagation of D / D'")
-        if self.fault.value == nodes.Value("D"):  # SA0
-            s = f"For F = {self.fault.name}-SA0"
-        elif self.fault.value == nodes.Value("D'"):
-            s = f"For F = {self.fault.name}-SA1"
-        print(s, self.fault.name, self.fault.value)
-        # if any(node == 'D' or node == "D'" for node in self.nodes.output_nodes):
-        #     s = f" "
-        #     #print(s)
-        #     if self.fault.value == "D": # D means stuck at 0
-        #         s += f"F = {self.fault.node.name} SA-0"
-        #     elif self.fault.value == "D'": #D' means stuck at 1
-        #         s += f"F = {self.fault.node.name} SA-1"
-        #     print(s)
-        #     return True
-        # else:
-        #     return False
+    def detect_faults(self):
+        if self.faulty_node:
+            print(f"Fault {self.faulty_node.name}-SA-{0 if self.faulty_node.value == 'D' else 1} ", sep="")
+            if any(node == "D" or node == "D'" for node in self.nodes.output_nodes.values()):
+                print( f"detected with input {self.args.testvec}, at output nodes:")
+                faulty_outputs = [node for node in self.nodes.output_nodes.values() if node == "D" or node == "D'"]
+                for node in faulty_outputs:
+                    print(str(node) + "\n")
+            else:
+                print(f"undetected with {self.args.testvec}")
 
     def reset(self):
         for node in self.nodes:
