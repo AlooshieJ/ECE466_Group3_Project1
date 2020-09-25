@@ -200,7 +200,7 @@ class CircuitSimulator(object):
             node.set(nodes.Value(character))
 
         # asking for faulty node
-        with_fault = input("Do you want a faulty node? (y/n)")
+        with_fault = input("Do you want a faulty node? (Y/N)")
         if with_fault == 'y':
             self.run_fault = True
             self.fault = self.create_fault()
@@ -228,12 +228,12 @@ class CircuitSimulator(object):
 
     def create_fault(self):
 
-        is_node = input("which node do you want to be faulty?")
+        is_node = input("Which node do you want to be faulty?")
         found_node = False
         # check if this node exists
         for node in self.nodes:
             if node.name == is_node:
-                print(f"found the node {node.name} = {node.value}")
+                print(f"Found the node {node.name} = {node.value}")
                 found_node = node
                 break
 
@@ -241,7 +241,7 @@ class CircuitSimulator(object):
             print("Not a valid node to change")
             return False
         else:
-            fault_value = input(f"which value do you want node {found_node.name} to be stuck at? (1/0)")
+            fault_value = input(f"Which value do you want node {found_node.name} to be stuck at? (1/0)")
             fault_value.upper()
             if fault_value == '0': # f Node -sA0 mean D
                 found_node.set(nodes.Value("D"))
