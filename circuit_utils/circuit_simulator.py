@@ -123,6 +123,7 @@ class CircuitSimulator(object):
         self.parser = self.LineParser(args.bench)
         self.compile(self.parser.parse_file())
         self.faulty_node = None
+        self.user_input = None
 
     def __next__(self):
         if self.iteration == 0:
@@ -187,6 +188,7 @@ class CircuitSimulator(object):
                     final_inputs.append("D'")
                 else:
                     final_inputs.append(input_values[chars])  # this will always be a single D
+        self.user_input = final_inputs
         for character, node in zip(final_inputs, self.nodes.input_nodes.values()):
             node.set(nodes.Value(character))
         self.create_fault()
@@ -198,6 +200,27 @@ class CircuitSimulator(object):
             iteration_printer(self.nodes)
         print(iteration_printer)
         self.detect_faults()
+        self.print_results()
+
+
+    def print_results(self):
+        print(f"---Simulation Results---\nInput Nodes:")
+
+
+        inputs = [node for node in self.nodes.input_nodes.values()]
+        outputs = [node for node in self.nodes.output_nodes.values()]
+
+        for item in inputs:
+           print(item.name,end = " ")
+        print("= ")
+        for item in inputs:
+            print(item.value, end = " ")
+        print(f"\nOutput Nodes:")
+        for item in outputs:
+            print(item.name, end=" ")
+        print("= ")
+        for item in outputs:
+            print(item.value, end=" ")
 
     def create_fault(self):
         while True:
@@ -225,7 +248,7 @@ class CircuitSimulator(object):
         if self.faulty_node:
             print(f"Fault {self.faulty_node.name}-SA-{0 if self.faulty_node.value == 'D' else 1} ", sep="")
             if any(node == "D" or node == "D'" for node in self.nodes.output_nodes.values()):
-                print( f"detected with input {self.args.testvec}, at output nodes:")
+                print( f"detected with input {self.args.testvec if self.args.testvec else print(*self.user_input)}, at output nodes:")
                 faulty_outputs = [node for node in self.nodes.output_nodes.values() if node == "D" or node == "D'"]
                 for node in faulty_outputs:
                     print(str(node) + "\n")
