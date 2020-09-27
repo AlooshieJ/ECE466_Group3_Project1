@@ -199,8 +199,9 @@ class CircuitSimulator(object):
         for iteration in self:
             iteration_printer(self.nodes)
         print(iteration_printer)
-        self.detect_faults()
         self.print_results()
+        self.detect_faults()
+
 
 
     def print_results(self):
@@ -221,6 +222,7 @@ class CircuitSimulator(object):
         print("= ")
         for item in outputs:
             print(item.value, end=" ")
+        print("\n")
 
     def create_fault(self):
         while True:
@@ -246,9 +248,11 @@ class CircuitSimulator(object):
 
     def detect_faults(self):
         if self.faulty_node:
-            print(f"Fault {self.faulty_node.name}-SA-{0 if self.faulty_node.value == 'D' else 1} ", sep="")
+            print(f"Fault: {self.faulty_node.name}-SA-{0 if self.faulty_node.value == 'D' else 1} ", sep="")
             if any(node == "D" or node == "D'" for node in self.nodes.output_nodes.values()):
-                print( f"detected with input {self.args.testvec if self.args.testvec else print(*self.user_input)}, at output nodes:")
+                #print( f"detected with input {self.args.testvec if self.args.testvec else self.user_input}, at output nodes:")
+                print(
+                    f"detected  at output nodes:")
                 faulty_outputs = [node for node in self.nodes.output_nodes.values() if node == "D" or node == "D'"]
                 for node in faulty_outputs:
                     print(str(node) + "\n")

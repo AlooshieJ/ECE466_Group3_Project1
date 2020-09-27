@@ -169,6 +169,8 @@ class OrGate(Gate):
     def logic(self):
         if any(node == 1 for node in self.input_nodes):
             self.value_new = Value(1)
+        elif all(node == '0' for node in self.input_nodes):
+            self.value_new = Value(0)
         elif any(node == 'U' for node in self.input_nodes):
             self.value_new = Value('U')
         elif all(node == 'D' or node == 0 for node in self.input_nodes):
