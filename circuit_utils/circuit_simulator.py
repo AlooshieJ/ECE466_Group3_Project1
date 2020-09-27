@@ -2,6 +2,7 @@ from _collections import OrderedDict
 from circuit_utils import nodes
 from circuit_utils import exceptions
 from re import match
+import copy
 
 
 class CircuitSimulator(object):
@@ -124,6 +125,7 @@ class CircuitSimulator(object):
         self.compile(self.parser.parse_file())
         self.faulty_node = None
         self.user_input = None
+        self.ref_fault = None # unchanged fault , to detect chagne for output / prop
 
     def __next__(self):
         if self.iteration == 0:
@@ -245,10 +247,12 @@ class CircuitSimulator(object):
                     print("Node name not found: try again")
             else:
                 break
+        self.ref_fault = copy.deepcopy(self.faulty_node)
+
 
     def detect_faults(self):
         if self.faulty_node:
-            print(f"Fault: {self.faulty_node.name}-SA-{0 if self.faulty_node.value == 'D' else 1} ", sep="")
+            print(f"Fault: {self.faulty_node.name}-SA-{0 if self.ref_fault.value == 'D' else 1} ", sep="")
             if any(node == "D" or node == "D'" for node in self.nodes.output_nodes.values()):
                 #print( f"detected with input {self.args.testvec if self.args.testvec else self.user_input}, at output nodes:")
                 print(
@@ -256,6 +260,13 @@ class CircuitSimulator(object):
                 faulty_outputs = [node for node in self.nodes.output_nodes.values() if node == "D" or node == "D'"]
                 for node in faulty_outputs:
                     print(str(node) + "\n")
+            elif self.ref_fault.type == 'output':
+                if self.ref_fault.value == "D" and self.nodes.output_nodes[self.ref_fault.name].value == 1:
+                    print("Detected fault on output")
+                elif self.ref_fault == "D'" and self.nodes.output_nodes[self.ref_fault.name].value == 0:
+                    print("Detected fault on output")
+                else:
+                    print("Fault undetected ")
             else:
                 print(f"undetected with {self.args.testvec}")
 
